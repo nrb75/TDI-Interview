@@ -1,0 +1,58 @@
+---
+title: "TDI interview"
+author: "Natalie Morse"
+date: "May 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+
+criticalvaluelow=qt(.025, 15)
+criticalvaluehigh=qt(.975, 15)
+
+draws <- rt(100000, df=15)
+dens <- density(draws)
+criticalvaluelow1=quantile(draws, .025)
+criticalvaluehigh1=quantile(draws, .975)
+
+left=max(which(dens$x<=-4)) #zero, or starting point x3
+indexlow=max(which(dens$x <=criticalvaluelow1)) #critical value low, the area between left and indexlow should be 0.025 (half the allowable 0.05)
+indexhigh=min(which(dens$x >=criticalvaluehigh1)) #critical value high x1
+right=max(which(dens$x<4)) #end. The area between indexhigh and right should be 0.025
+
+
+#curve(dt(x, df=15), -4,4)
+plot(dens, xlim=c(-4,4))
+with(dens, polygon(x=c(x[c(left,left:indexlow,indexlow)]), y= c(0, y[left:indexlow], 0), col="gray")) #low tail
+
+with(dens, polygon(x=c(x[c(indexhigh,indexhigh:right,right)]), y= c(0, y[indexhigh:right], 0), col="gray")) #high tail
+```
+
+
+```{r}
+set.seed(1)
+draws <- rnorm(100)^2
+dens <- density(draws)
+plot(dens)
+
+q2     <- 2
+q65    <- 6.5
+qn08   <- -0.8
+qn02   <- -0.2
+
+x1 <- min(which(dens$x >= q2))  
+x2 <- max(which(dens$x <  q65))
+x3 <- min(which(dens$x >= qn08))  
+x4 <- max(which(dens$x <  qn02))
+
+with(dens, polygon(x=c(x[c(x1,x1:x2,x2)]), y= c(0, y[x1:x2], 0), col="gray"))
+```
+
