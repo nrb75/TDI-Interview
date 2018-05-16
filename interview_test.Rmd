@@ -10,7 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-library(dplyr)
+
+install.packages(c("ggplot2", "dplyr", "sciplot", "repr", "VennDiagram"))
+library(VennDiagram)
 ```
 
 ```{r}
@@ -54,5 +56,12 @@ x3 <- min(which(dens$x >= qn08))
 x4 <- max(which(dens$x <  qn02))
 
 with(dens, polygon(x=c(x[c(x1,x1:x2,x2)]), y= c(0, y[x1:x2], 0), col="gray"))
+```
+
+
+```{r}
+draw.pairwise.venn(15, 15, 5, category = c("Jets Win", "Star hurt"), lty = rep("blank", 
+2), fill = c("blue", "red"), alpha = rep(0.5, 2), cat.pos = c(0, 
+0), cat.dist = rep(0.025, 2), scaled = FALSE)
 ```
 
