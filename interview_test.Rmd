@@ -65,3 +65,86 @@ draw.pairwise.venn(15, 15, 5, category = c("Jets Win", "Star hurt"), lty = rep("
 0), cat.dist = rep(0.025, 2), scaled = FALSE)
 ```
 
+
+## Monte carlo simulations
+
+proportion of town that will come to concert.
+Use binomial where success is 'attend' and fail = will not come to concert.
+```{r}
+rbinom()
+```
+
+
+```{r}
+geneq <- function(x) rt(1,0.5)
+f <- function(x) dt(x,1)
+q <- function(y,x){
+  dt(x,0.5)
+}
+x <- vector()
+x[1] <- 1
+y=vector()
+
+for(t in 1:500){
+  y[t] <- geneq ( x[t] )
+  if( runif(1) < f(y) * q(y,x[t])/ ( f(x[t]) * q(x[t],y))){
+    x[t+1]=y
+  }else{
+    x[t+1]=x[t]
+  }
+}
+
+head(y)
+```
+
+
+```{r}
+#from book
+#this works, but not sure why do not get multiple ys, we do get multiple xs
+f <- function(x) dt(x,1)
+q <- function(y,x){
+  dt(x,0.5)
+}
+geneq <- function(x) rnorm(n=100, mean=0.6, sd=0.2)
+t=c(1:500)
+y=vector()
+x=vector()
+x[1]=1
+
+if (runif(1)<f(y)*q(y,x[t])/(f(x[t])*q(x[t],y))){
+x[t+1]=y
+}else{
+x[t+1]=x[t]
+}
+
+head(x)
+
+```
+
+https://www4.stat.ncsu.edu/~reich/st740/Computing3.pdf
+```{r}
+#bookkeeping
+n <- length(y)
+sumy <- sum(y)
+iters=200
+keepers <- matrix(0,iters,2)
+
+#initial values
+z <- rep(1,n)
+theta <- 0.5
+lambda <- 1
+for(i in 1:iters){
+#update z
+P1 <- ifelse(y==0,1,0)*theta
+P0 <- dpois(y,lambda)*(1-theta)
+z <- rbinom(n,1,P1/(P1+P0))
+#update theta and lambda
+n1 <- sum(z==1)
+n0 <- n-n1
+theta <- rbeta(1,a+n1,b+n0)
+lambda <- rgamma(1,c+sumy,d+n0)
+keepers[i,]<-c(theta,lambda)
+}
+
+```
+
