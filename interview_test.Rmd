@@ -66,6 +66,15 @@ draw.pairwise.venn(15, 15, 5, category = c("Jets Win", "Star hurt"), lty = rep("
 ```
 
 
+
+
+```{r}
+library(TeachBayes)
+
+ab=c(1,3)
+beta_draw(ab)
+```
+
 ## Monte carlo simulations
 
 proportion of town that will come to concert.
@@ -144,6 +153,36 @@ n0 <- n-n1
 theta <- rbeta(1,a+n1,b+n0)
 lambda <- rgamma(1,c+sumy,d+n0)
 keepers[i,]<-c(theta,lambda)
+}
+
+```
+
+```{r}
+Model=seq(3,17,1)
+?dnorm
+```
+
+
+```{r}
+#y=rnorm(n=100, mean=0.6 sd=0.2) #mean=60%, standard deviation = 20%
+
+geneq <- function(x) rnorm(n=100, mean=0.6, sd=0.2)
+    
+f <- function(x) dnorm(x,1)
+q <- function(y,x){
+  dnorm(x,0.5)
+}
+x <- vector()
+y=vector()
+x[1] <- 2
+
+for(t in 1:500){
+  y[t] <- geneq ( x[t] )
+  if( runif(1) < f(y) * q(y,x[t])/ ( f(x[t]) * q(x[t],y))){
+    x[t+1]=y
+  }else{
+    x[t+1]=x[t]
+  }
 }
 
 ```
