@@ -71,8 +71,19 @@ draw.pairwise.venn(15, 15, 5, category = c("Jets Win", "Star hurt"), lty = rep("
 ```{r}
 library(TeachBayes)
 
-ab=c(1,3)
-beta_draw(ab)
+Prior_beta=c(2.9,2)
+beta_draw(PriorBeta)
+```
+
+
+```{r}
+Posterior_beta=c(2.9+70, 2.0+80)
+
+beta_prior_post(Prior_beta, Posterior_beta)
+```
+
+```{r}
+install.packages(c("ggplot2", "sciplot", "reshape", "TeachBayes"), "C:/Users/nrb75/AppData/Local/Continuum/anaconda3/Lib/R/library")
 ```
 
 ## Monte carlo simulations
