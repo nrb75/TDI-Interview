@@ -1,0 +1,154 @@
+---
+title: "Markov Example"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(TeachBayes)
+```
+
+MCMC
+target density
+prob density function
+```{r}
+p <- 0.6
+mu <- c(8, 13)
+sd <- c(.9, 1.8)
+
+
+likelihood <- function(x)#f
+    p* dnorm(x, mu[1], sd[1])+(1-p)*dnorm(x, mu[2], sd[2])#normal distribution 
+
+curve(likelihood(x), col="red", -2, 20, n=301, las=1)
+```
+
+proposed algorithm samples fom normal distribution centered at current point
+```{r}
+priorfunc <- function(x) rnorm(1, mean=12, sd=3) #q
+```
+
+```{r}
+step <- function(x, likelihood, priorfunc) {
+    ## Pick new point
+    xp <- priorfunc(x)
+    ## Acceptance probability:
+    alpha <- min(1, likelihood(xp) / likelihood(x))
+    ## Accept new point with probability alpha:
+    if (runif(1) < alpha)
+        x <- xp
+    ## Returning the point:
+    x
+}
+
+step(x=4, priorfunc,priorfunc)#returns value of next step, will remain at starting point if we do not satisfy accept criteria
+```
+
+And this just takes care of running the MCMC for a number of steps. It will start at point x return a matrix with nsteps rows and the same number of columns as x has elements. If run on scalar x it will return a vector.
+
+```{r}
+run <- function(x, likelihood, priorfunc, nsteps) {
+    res <- matrix(NA, nsteps, length(x))
+    for (i in seq_len(nsteps))
+        res[i,] <- x <- step(x, likelihood, priorfunc)
+    drop(res)
+}
+```
+
+```{r}
+results <- run(10, likelihood, priorfunc, 1000)
+
+head(res)
+
+plot(results, type="s", xpd=NA, ylab="Parameter", xlab="Sample", las=1)
+```
+
+
+```{r}
+hist(results, 50, freq=FALSE, main="", las=1,
+     xlab="x", ylab="Probability density")
+```
+
+
+
+```{r}
+f(2)
+f(1)
+```
+
+------------------------------------
+normal simulation
+```{r}
+x=seq(1,25, by=.2)
+prior_sd=4
+prior_mean=12
+Prior=dnorm(x, mean=12, sd=4)
+plot(x,y, type='l', ylab='Probability', xlab='Crowd Size (Millions)', ylim=c(0,.15))
+```
+
+```{r}
+size=sort(c(5,8,3,12,10,8,6,17,11,5,9,10,12,6,10))
+ysize=seq(0,0, length.out=15)
+plot(x,y, type='l', ylab='Probability', xlab='Crowd Size (Millions)' ,ylim=c(0,.15))
+points(size,ysize)
+```
+
+observed data
+```{r}
+data_mean=mean(size)
+data_sd=sd(size)
+
+x_size=seq(1,25, by=.2)
+Likelihood=dnorm(data_mean, mean=x, sd=data_sd) #based on observations
+df.norm=data.frame(x, Likelihood)
+
+plot(x,y, type='l', ylab='Probability', xlab='Crowd Size (Millions)', ylim=c(0,.15))
+lines(x_size, Likelihood, col='red')
+```
+
+
+```{r}
+Prior_precision=1/(prior_sd^2)
+Data_precision=1/(data_sd^2)
+Posterior_precision=Prior_precision+Data_precision
+Posterior_sd=1/sqrt(Posterior_precision)
+
+Posterior_mean=((prior_mean*Prior_precision)+(data_mean*Data_precision))/(Prior_precision+Data_precision)
+weighted.mean(x=c(prior_mean, data_mean), w=c(Prior_precision, Data_precision))
+
+Posterior=dnorm(x, mean=Posterior_mean, sd=Posterior_sd)
+
+plot(x,y, type='l', ylab='Probability', xlab='Crowd Size (Millions)', ylim=c(0,.15))
+lines(x_size, Likelihood, col='red')
+lines(x, Posterior, col='blue')
+```
+
+```{r}
+normal_update(c(prior_mean, prior_sd), c(data_mean, data_sd))
+```
+
+```{r}
+draws <- rnorm(1000000, mean=prior_mean, prior_sd=1) #random values from normal-distribution
+dens <- density(draws) 
+criticalvaluehigh=quantile(Prior, .7734) #critical value of upper tail
+
+indexhigh=min(which(dens$x >=criticalvaluehigh)) #critical value high
+right=max(which(dens$x<4)) #end. The area between indexhigh and right should be 0.025
+
+plot(dens, xlab="", main="Normal Distribution")
+with(dens, polygon(x=c(x[c(indexhigh,indexhigh:right,right)]), y= c(0, y[indexhigh:right], 0), col="gray85")) #high tail
+```
+
+
+```{r}
+plot(x,Prior, type='l', ylab='Probability', xlab='Crowd Size (Millions)', ylim=c(0,.15))
+with(dens, polygon(x=c(x[c(indexhigh,indexhigh:right,right)]), y= c(0, y[indexhigh:right], 0), col="gray85"))
+```
+
+MCMC
+
+
+```{r}
+
+```
+
