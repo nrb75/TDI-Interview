@@ -29,7 +29,8 @@ likelihood(5)
 
 proposed algorithm samples fom normal distribution centered at current point
 ```{r}
-priorfunc <- function(x) rnorm(1, mean=12, sd=3) #q
+priorfunc <- function(x) rnorm(1, mean=12, sd=3) #q sample from normal distribution centered at current point x, with known sd
+q <- function(x) rnorm(1, x, 4)
 ```
 
 ```{r}
@@ -64,25 +65,45 @@ for (i in 1:1000) {
 }
 hist(x)
 
+
+
 dnorm(x, mu[1], sd[1])
+```
+
+use this one
+```{r}
 #update
 x=vector()
 x[1]=8
+mu_prior=12
+sd_prior=2
+sd_post=3
 for (i in 1:1000) {
-    ## Pick new point
-    xp <- priorfunc(x)
-    ## Acceptance probability:
-    alpha <- min(1, dnorm(xp, mu[1], sd[1]) / dnorm(x, mu[1], sd[1]))
-    ## Accept new point with probability alpha:
+    # new random value generated
+    xp <- rnorm(1, mean=x[i], sd=sd_post)
+     # Determine if we accept new value or not
+    prior=dnorm(x, mu_prior, sd_prior)
+    prior_xp=
+    likelihood_xp=dnorm(xp, mu_prior, sd_prior)
+    likelihood_x=dnorm(x, mu_prior, sd_prior)
+    alpha <- min(1, (likelihood_xp*prior) / (likelihood_x*prior))#the prior cancels out when we have normal 
+    # Accept new point if it passes the criteria test
     if (runif(1) < alpha)
         x[i+1] <- xp
     else x[i+1]=x[i]
-    ## Returning the point:
-    x
 }
 hist(x)
+```
 
 
+```{r}
+index=seq(from=1, to=1001, by=1)
+plot(index, x, type='l')
+```
+
+probability with size<15
+```{r}
+sum(x>15)/length(x)
 ```
 
 And this just takes care of running the MCMC for a number of steps. It will start at point x return a matrix with nsteps rows and the same number of columns as x has elements. If run on scalar x it will return a vector.
@@ -108,36 +129,7 @@ hist(results, 50, freq=FALSE, main="", las=1,
      xlab="x", ylab="Probability density")
 ```
 
-
-Try to code this myself
-
 ```{r}
-DD_max=seq(0,0, length.out=1000000)
-
-maxstep=m+n#max number of steps
-for (j in 1:1000000){
-  x=0
-  y=0
-
-for (i in 1:maxstep){
-  steps=runif(1, min=0, max=1)
-  if (x<m & y<n){
-    if (steps <0.5){
-      x=x+1}
-    if (steps >= 0.5){
-      y=y+1}
-  }
-  if (x==m){
-    y=y+1}
-  if (y==n){
-    x=x+1}
-  DD=abs(x/m - y/n)
-  if (DD>DD_max[j]){
-    DD_max[j]=DD}
-}
-}
-
-
 #select random value, calculate likelihood and prior
 #then calculate acceptance ratio and add this new value to chain if it passes
 x=2
@@ -187,8 +179,8 @@ mu_proposal =rnorm(1, mean=12, sd=3)
 
 
 ```{r}
-f(2)
-f(1)
+Prior=dnorm(x, mean=prior_mean, sd=prior_sd)
+Posterior=dnorm(x, mean=Posterior_mean, sd=Posterior_sd)
 ```
 
 ------------------------------------
@@ -260,96 +252,42 @@ plot(x,Prior, type='l', ylab='Probability', xlab='Crowd Size (Millions)', ylim=c
 with(dens, polygon(x=c(x[c(indexhigh,indexhigh:right,right)]), y= c(0, y[indexhigh:right], 0), col="gray85"))
 ```
 
+
+
+#MCMC with data
+
+```{r}
+#update
+x=vector()
+x[1]=8
+mu_prior=data.mean
+sd_prior=data.sd
+sd_post=3
+for (i in 1:3000) {
+    # new random value generated
+    xp <- rnorm(1, mean=x[i], sd=sd_post)
+     # Determine if we accept new value or not
+    prior=dnorm(x, mu_prior, sd_prior)
+    prior_xp=
+    likelihood_xp=dnorm(xp, mu_prior, sd_prior)
+    likelihood_x=dnorm(x, mu_prior, sd_prior)
+    alpha <- min(1, (likelihood_xp*prior) / (likelihood_x*prior))#the prior cancels out when we have normal 
+    # Accept new point if it passes the criteria test
+    if (runif(1) < alpha)
+        x[i+1] <- xp
+    else x[i+1]=x[i]
+}
+hist(x)
+```
+
+
+```{r}
+mean(x)
+sum(x>15)/length(x)
+```
+
 MCMC example
 
 in python
 
 http://twiecki.github.io/blog/2015/11/10/mcmc-sampling/
-```{r}
-def sampler(data, samples=4, mu_init=.5, proposal_width=.5, plot=False, mu_prior_mu=0, mu_prior_sd=1.):
-    mu_current = mu_init
-    posterior = [mu_current]
-    for i in range(samples):
-        # suggest new position
-        mu_proposal = norm(mu_current, proposal_width).rvs() #
-
-        # Compute likelihood by multiplying probabilities of each data point
-        likelihood_current = norm(mu_current, 1).pdf(data).prod()
-        likelihood_proposal = norm(mu_proposal, 1).pdf(data).prod()
-        
-        # Compute prior probability of current and proposed mu        
-        prior_current = norm(mu_prior_mu, mu_prior_sd).pdf(mu_current)
-        prior_proposal = norm(mu_prior_mu, mu_prior_sd).pdf(mu_proposal)
-        
-        p_current = likelihood_current * prior_current
-        p_proposal = likelihood_proposal * prior_proposal
-        
-        # Accept proposal?
-        p_accept = p_proposal / p_current
-        
-        # Usually would include prior probability, which we neglect here for simplicity
-        accept = np.random.rand() < p_accept
-        
-        if plot:
-            plot_proposal(mu_current, mu_proposal, mu_prior_mu, mu_prior_sd, data, accept, posterior, i)
-        
-        if accept:
-            # Update position
-            mu_current = mu_proposal
-        
-        posterior.append(mu_current)
-        
-    return posterior
-```
-
-
-in R
-```{r}
-mu_current = 1
-samples=500
-
-def sampler(data, samples=4, mu_init=.5, proposal_width=.5, plot=False, mu_prior_mu=0, mu_prior_sd=1.):
-    mu_current = mu_init
-    posterior = [mu_current]
-
-    
-  Prior=dnorm(x, mean=prior_mean, sd=prior_sd)
-  Likelihood=dnorm(data_mean, mean=x, sd=data_sd) 
-    
-    
-obs.data=c(1,10,18,5,9)
-    
-for i in samples{
-        # suggest new position
-        mu_proposal = rnorm(1, mean=mu_current, sd=proposal_width)#1=1 sample, the Metropolis sampler is very dumb and just takes a sample from a normal distribution (no relationship to the normal we assume for the model) centered around your current mu value (i.e. mu_current) with a certain standard deviation (proposal_width) that will determine how far you propose 
-
-        # Compute likelihood by multiplying probabilities of each data point
-        likelihood_current = dnorm(obs.data, mean=mu_current, sd=1)#assume we know standard dev=1
-        likelihood_proposal = dnorm(obs.data, mean=mu_proposal, sd=1)
-        
-        # Compute prior probability of current and proposed mu        
-        prior_current = dnorm(mu_current, mean=)
-          norm(mu_prior_mu, mu_prior_sd).pdf(mu_current)
-        prior_proposal = norm(mu_prior_mu, mu_prior_sd).pdf(mu_proposal)
-        
-        p_current = likelihood_current * prior_current
-        p_proposal = likelihood_proposal * prior_proposal
-        
-        # Accept proposal?
-        p_accept = p_proposal / p_current
-        
-        # Usually would include prior probability, which we neglect here for simplicity
-        accept = np.random.rand() < p_accept
-        
-        if plot:
-            plot_proposal(mu_current, mu_proposal, mu_prior_mu, mu_prior_sd, data, accept, posterior, i)
-        
-        if accept:
-            # Update position
-            mu_current = mu_proposal
-        
-        posterior.append(mu_current)
-        
-    return posterior
-```
-
